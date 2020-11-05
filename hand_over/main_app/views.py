@@ -1,13 +1,16 @@
 from django.shortcuts import render
-
-# Create your views here.
 from django.views import View
+from main_app.utils import get_bags_quantity, get_supported_institutions
 
 
 class LandingPage(View):
 
     def get(self, request):
-        return render(request, 'index.html')
+        bags = get_bags_quantity()
+        institutions = get_supported_institutions()
+        context = {'bags': bags,
+                   'institutions': institutions}
+        return render(request, 'index.html', context)
 
 
 class AddDonation(View):

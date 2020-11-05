@@ -8,6 +8,12 @@ from django.db import models
 class Category(models.Model):
     name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+
 
 class Institution(models.Model):
     name = models.CharField(max_length=150)
@@ -20,6 +26,9 @@ class Institution(models.Model):
     type = models.IntegerField(choices=TYPES, default=0)
     categories = models.ManyToManyField(Category, related_name='institutions')
 
+    def __str__(self):
+        return self.name
+
 
 class Donation(models.Model):
     quantity = models.IntegerField()
@@ -31,8 +40,8 @@ class Donation(models.Model):
     zip_code = models.CharField(max_length=6)
     pick_up_date = models.DateField()
     pick_up_time = models.TimeField()
-    pick_up_comment = models.TextField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, default=None)
+    pick_up_comment = models.TextField(null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, default=None, blank=True)
 
-
-
+    def __str__(self):
+        return f'Dar dla: {self.institution}, liczba worków: {self.quantity}, Odbiór: {self.pick_up_date} o {self.pick_up_time}'
