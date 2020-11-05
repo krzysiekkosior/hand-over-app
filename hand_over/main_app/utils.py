@@ -9,7 +9,7 @@ def get_bags_quantity():
     return bags_quantity
 
 
-def get_supported_institutions():
+def get_supported_institutions_amount():
     donations = Donation.objects.all()
     supported_institutions = []
     for donation in donations:
