@@ -35,6 +35,20 @@ class Login(View):
     def get(self, request):
         return render(request, 'login.html')
 
+    def post(self, request):
+        username = request.POST.get('username')
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return redirect('register')
+
+        password = request.POST.get('password')
+        if user.check_password(raw_password=password):
+            login(self.request, user)
+            return redirect('landing_page')
+        return render(request, 'login.html', {'error': "Podane hasło jest błędne.",
+                                              'email': username})
+
 
 class Register(View):
 

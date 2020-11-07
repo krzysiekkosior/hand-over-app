@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 import pytest
 from django.urls import reverse_lazy
+from django.contrib.auth import get_user
 
 
 @pytest.mark.django_db
@@ -39,3 +40,11 @@ def test_create_user(client):
     client.post(reverse_lazy('register'), context)
     assert User.objects.exists()
     assert User.objects.first().password != 'trudnehaslo123'
+
+
+@pytest.mark.django_db
+def test_login_user(client, user):
+    context = {'username': 'tesat@test.com', 'password': 'testpassword123'}
+    client.post(reverse_lazy('login'), context)
+    logged_user = get_user(client)
+    assert logged_user.is_authenticated
