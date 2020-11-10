@@ -196,8 +196,52 @@ document.addEventListener("DOMContentLoaded", function() {
       this.$next.forEach(btn => {
         btn.addEventListener("click", e => {
           e.preventDefault();
-          this.currentStep++;
-          this.updateForm();
+
+          if (this.currentStep === 2) {
+            let step = document.querySelector("div[data-step='3']");
+            const button_div = step.querySelector(".form-group--buttons")
+            let categories = document.querySelectorAll('input[name="categories"]:checked');
+            var addres = "/get_institutions/";
+            var params = ""
+            for (let el of categories) {
+              params =params+ 'cat_ids=' + el.value + "&"
+            }
+            addres = addres + "?" + params
+
+            fetch(addres, {method: 'GET',})
+                .then((res) => {
+              return res.json();
+            })
+                .then((res) => {
+                    console.log(res);
+                  let existing_checkboxes =  step.querySelectorAll(".form-group--checkbox");
+                  if (existing_checkboxes !== null) {
+                      for (let checkbox of existing_checkboxes) {
+                          checkbox.remove()
+                      }
+                  };
+                  for (let org of res.institutions) {
+                    const div = document.createElement("div");
+
+                    div.classList.add("form-group", "form-group--checkbox");
+                    div.innerHTML += `
+                    <label>
+                    <input type="radio" name="organization" value="${org.id}" />
+                    <span class="checkbox radio"></span>
+                    <span class="description">
+                      <div class="title">${org.type} “${org.name}”</div>
+                      <div class="subtitle">
+                        Cel i misja: ${org.description}
+                      </div>
+                    </span>
+                    </label>
+                    `;
+                    step.insertBefore(div, button_div);
+                  }
+            })
+          }
+              this.currentStep++;
+              this.updateForm();
         });
       });
 

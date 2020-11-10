@@ -1,10 +1,12 @@
 from django.contrib.auth import login
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views import View
 
 from main_app.forms import SignUpForm
-from main_app.models import Institution
+from main_app.models import Institution, Category
 from main_app.utils import get_bags_quantity, get_supported_institutions_amount
 
 
@@ -27,7 +29,19 @@ class LandingPage(View):
 class AddDonation(View):
 
     def get(self, request):
-        return render(request, 'form.html')
+        user = request.user
+        if user.is_anonymous:
+            return redirect('login')
+        categories = Category.objects.all()
+        organizations = Institution.objects.all()
+        context = {'categories': categories,
+                   'organizations': organizations}
+        return render(request, 'form.html', context)
+
+    def post(self, request):
+        categories_ids = request.POST.getlist('categories')
+        categories = [Category.objects.get(id=cat_id) for cat_id in categories_ids]
+        bags_quantity = request.POST.get('bags')
 
 
 class Login(View):
@@ -68,3 +82,18 @@ class Register(View):
             user.save()
             return redirect('login')
         return render(request, 'register.html', {'form': form})
+
+
+def get_institutions_by_category(request):
+    categories_ids = request.GET.getlist('cat_ids')
+    categories_ids = [int(cat_id) for cat_id in categories_ids]
+
+    institutions = Institution.objects.filter(categories__in=categories_ids).distinct()
+    institutions_to_display = []
+    for institution in institutions:
+        json_institution = {'id': institution.id,
+                            'name': institution.name,
+                            'type': institution.get_type_display(),
+                            'description': institution.description}
+        institutions_to_display.append(json_institution)
+    return JsonResponse({'institutions': institutions_to_display})
