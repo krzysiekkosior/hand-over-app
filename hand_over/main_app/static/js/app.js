@@ -201,12 +201,11 @@ document.addEventListener("DOMContentLoaded", function() {
             let step = document.querySelector("div[data-step='3']");
             const button_div = step.querySelector(".form-group--buttons")
             let categories = document.querySelectorAll('input[name="categories"]:checked');
-            var addres = "/get_institutions/";
-            var params = ""
+            let params = ""
             for (let el of categories) {
-              params =params+ 'cat_ids=' + el.value + "&"
+              params = params+ 'cat_ids=' + el.value + "&"
             }
-            addres = addres + "?" + params
+            let addres = "/get_institutions/?" + params
 
             fetch(addres, {method: 'GET',})
                 .then((res) => {
