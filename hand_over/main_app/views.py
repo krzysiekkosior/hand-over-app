@@ -33,15 +33,21 @@ class AddDonation(View):
         if user.is_anonymous:
             return redirect('login')
         categories = Category.objects.all()
-        organizations = Institution.objects.all()
-        context = {'categories': categories,
-                   'organizations': organizations}
+        context = {'categories': categories}
         return render(request, 'form.html', context)
 
     def post(self, request):
         categories_ids = request.POST.getlist('categories')
         categories = [Category.objects.get(id=cat_id) for cat_id in categories_ids]
         bags_quantity = request.POST.get('bags')
+        address = request.POST.get('address')
+        city = request.POST.get('city')
+        zip_code = request.POST.get('postcode')
+        phone_number = request.POST.get('phone')
+        pick_up_date = request.POST.get('data')
+        pick_up_time = request.POST.get('time')
+        pick_up_comment = request.POST.get('more_info')
+        return render(request, 'form-confirmation.html')
 
 
 class Login(View):
@@ -97,3 +103,7 @@ def get_institutions_by_category(request):
                             'description': institution.description}
         institutions_to_display.append(json_institution)
     return JsonResponse({'institutions': institutions_to_display})
+
+
+def donation_added(request):
+    return render(request, 'form-confirmation.html')

@@ -239,6 +239,76 @@ document.addEventListener("DOMContentLoaded", function() {
                   }
             })
           }
+          if (this.currentStep === 4) {
+            let step_5 = document.querySelector("div[data-step='5']");
+            if (step_5.children.length === 3) {
+              step_5.children[1].remove()
+            }
+            let step_5_buttons = step_5.querySelector(".form-group--buttons")
+
+            let picked_categories = document.querySelectorAll('input[name="categories"]:checked');
+            let categories = ""
+             for (let el of picked_categories) {
+              categories += el.nextElementSibling.nextElementSibling.innerHTML + " ";
+            }
+            let bags_quantity = document.querySelector('input[name="bags"]');
+
+            let picked_organization = document.querySelector('input[name="organization"]:checked');
+            let organization = picked_organization.nextElementSibling.nextElementSibling.firstElementChild.innerHTML
+
+            let step_4 = document.querySelector("div[data-step='4']");
+            let address = step_4.querySelector('input[name="address"]');
+            let city = step_4.querySelector('input[name="city"]');
+            let postcode = step_4.querySelector('input[name="postcode"]');
+            let phone = step_4.querySelector('input[name="phone"]');
+            let data = step_4.querySelector('input[name="data"]');
+            let time = step_4.querySelector('input[name="time"]');
+            let more_info = step_4.getElementsByTagName('textarea')[0];
+            if (more_info.value === "") {
+              more_info.value = "Brak uwag"
+            }
+
+            let div = document.createElement("div");
+            div.classList.add("summary")
+            div.innerHTML = `
+              <div class="form-section">
+                <h4>Oddajesz:</h4>
+                <ul>
+                  <li>
+                    <span class="icon icon-bag"></span>
+                    <span class="summary--text">
+                        ${bags_quantity.value} x worek ${categories}
+                    </span>
+                  </li>
+                  <li>
+                    <span class="icon icon-hand"></span>
+                    <span class="summary--text"
+                      >Dla ${organization}</span
+                    >
+                  </li>
+                </ul>
+              </div>
+              <div class="form-section form-section--columns">
+                <div class="form-section--column">
+                  <h4>Adres odbioru:</h4>
+                  <ul>
+                    <li>${address.value}</li>
+                    <li>${city.value}</li>
+                    <li>${postcode.value}</li>
+                    <li>${phone.value}</li>
+                  </ul>
+                </div>
+                <div class="form-section--column">
+                  <h4>Termin odbioru:</h4>
+                  <ul>
+                    <li>${data.value}</li>
+                    <li>${time.value}</li>
+                    <li>${more_info.value}</li>
+                  </ul>
+                </div>
+              </div>`
+            step_5.insertBefore(div, step_5_buttons);
+          }
               this.currentStep++;
               this.updateForm();
         });
