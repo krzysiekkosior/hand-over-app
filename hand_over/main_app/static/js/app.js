@@ -357,8 +357,69 @@ document.addEventListener("DOMContentLoaded", function() {
      */
     submit(e) {
       e.preventDefault();
-      this.currentStep++;
-      this.updateForm();
+      var valid = true
+      let bags_quantity = document.querySelector('input[name="bags"]');
+      let picked_categories = document.querySelectorAll('input[name="categories"]:checked');
+      let categories = [];
+       for (let el of picked_categories) {
+        categories.push(el.value)
+      }
+      let organization = document.querySelector('input[name="organization"]:checked');
+      let step_4 = document.querySelector("div[data-step='4']");
+      let address = step_4.querySelector('input[name="address"]');
+      let phone = step_4.querySelector('input[name="phone"]');
+      let city = step_4.querySelector('input[name="city"]');
+      let postcode = step_4.querySelector('input[name="postcode"]');
+      let data = step_4.querySelector('input[name="data"]');
+      let time = step_4.querySelector('input[name="time"]');
+      let more_info = step_4.getElementsByTagName('textarea')[0];
+
+      fetch('/add-donation/',
+          {
+            method: 'POST',
+            headers: {
+              "Content-type": "application/json",
+              "X-CSRFToken": getCookie('csrftoken')
+            },
+            body: JSON.stringify({'quantity': bags_quantity.value,
+                                        'categories': categories,
+                                        'institution': organization.value,
+                                        'address': address.value,
+                                        'phone_number': phone.value,
+                                        'city': city.value,
+                                        'zip_code': postcode.value,
+                                        'pick_up_date': data.value,
+                                        'pick_up_time': time.value,
+                                        'pick_up_comment': more_info.value,
+                                        })
+          })
+                .then((res) => {
+              return res.json();
+              })
+                .then((res) => {
+              if (Object.keys(res.errors).length !== 0) {
+                valid = false
+                let step_1 = document.querySelector("div[data-step='1']");
+                let error_ul = step_1.querySelector(".error")
+                if (error_ul !== null) {
+                  step_1.children[0].remove()
+                }
+                let h3 = step_1.querySelector("h3");
+                let ul = document.createElement("ul");
+                ul.classList.add("form--steps-counter", "error")
+                for (let el in res.errors) {
+                  let li = document.createElement("li")
+                  li.innerHTML = res.errors[el].error;
+                  ul.appendChild(li)
+                }
+                step_1.insertBefore(ul, h3);
+                this.currentStep = 1;
+                this.updateForm();
+              }
+              let form = document.querySelector("form")
+              if (valid) form.submit()
+        })
+
     }
   }
   const form = document.querySelector(".form--steps");
@@ -366,3 +427,17 @@ document.addEventListener("DOMContentLoaded", function() {
     new FormSteps(form);
   }
 });
+
+
+function getCookie(c_name) {
+        if(document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=");
+            if(c_start != -1) {
+                c_start = c_start + c_name.length + 1;
+                c_end = document.cookie.indexOf(";", c_start);
+                if(c_end == -1) c_end = document.cookie.length;
+                return unescape(document.cookie.substring(c_start,c_end));
+            }
+        }
+        return "";
+    }

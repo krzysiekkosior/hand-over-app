@@ -1,7 +1,12 @@
+import re
+from datetime import datetime
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+
+from main_app.models import Donation, Category, Institution
 
 
 def validate_unique_username(value):
@@ -9,8 +14,18 @@ def validate_unique_username(value):
         raise ValidationError("Podany email jest zajęty.")
 
 
-class SignUpForm(UserCreationForm):
+def validate_zip_code(value):
+    validator = r'^[0-9]{2}-[0-9]{3}$'
+    if re.search(validator, value) is None:
+        raise ValidationError("Podaj poprawny kod pocztowy")
 
+
+def validate_date(value):
+    today = datetime.today().date()
+    if value < today:
+        raise ValidationError("Data nie może być z przeszłości")
+
+class SignUpForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email', 'password1', 'password2',)
@@ -28,6 +43,21 @@ class SignUpForm(UserCreationForm):
         self.fields['email'].validators.append(validate_unique_username)
 
 
-# first_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'placeholder': 'Imię'}))
-# last_name = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'placeholder': 'Nazwisko'}))
-# email = forms.EmailField(max_length=254, widget=forms.TextInput(attrs={'placeholder': 'Email'}))
+class DonationForm(forms.ModelForm):
+    categories = forms.ModelMultipleChoiceField(queryset=Category.objects.all())
+    institution = forms.ModelChoiceField(queryset=Institution.objects.all())
+
+    class Meta:
+        model = Donation
+        exclude = ('user', )
+        error_messages = {
+            'address': {'required': 'Podaj adres dostawy'},
+            'quantity': {'required': 'Podaj liczbę worków',
+                         'min_value': 'Podaj liczbę worków'},
+            'phone_number': {'required': 'Podaj numer kontaktowy'},
+            'city': {'required': 'Podaj miasto'},
+            'zip_code': {'required': 'Podaj kod pocztowy'},
+            'pick_up_date': {'required': 'Podaj datę odbioru'},
+            'pick_up_time': {'required': 'Podaj godzinę odbioru'}
+        }
+
