@@ -12,7 +12,8 @@ class Category(models.Model):
         return self.name
 
     class Meta:
-        verbose_name_plural = 'Categories'
+        verbose_name = 'Kategoria'
+        verbose_name_plural = 'Kategorie'
 
 
 class Institution(models.Model):
@@ -29,6 +30,10 @@ class Institution(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'Fundacja'
+        verbose_name_plural = 'Fundacje'
+
 
 class Donation(models.Model):
     quantity = models.IntegerField()
@@ -42,6 +47,11 @@ class Donation(models.Model):
     pick_up_time = models.TimeField()
     pick_up_comment = models.TextField(null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, default=None, blank=True)
+    is_taken = models.BooleanField(null=True, default=False)
 
     def __str__(self):
         return f'Dar dla: {self.institution}, liczba worków: {self.quantity}, Odbiór: {self.pick_up_date} o {self.pick_up_time}'
+
+    class Meta:
+        verbose_name = 'Darowizna'
+        verbose_name_plural = 'Darowizny'
