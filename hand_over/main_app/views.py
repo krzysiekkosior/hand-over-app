@@ -6,12 +6,12 @@ from django.shortcuts import render, redirect
 from django.views import View
 
 from main_app.forms import SignUpForm, DonationForm
-from main_app.models import Institution, Category
+from main_app.models import Institution, Category, Donation
 from main_app.utils import get_bags_quantity, get_supported_institutions_amount
 import json
 
 
-class LandingPage(View):
+class LandingPageView(View):
 
     def get(self, request):
         bags = get_bags_quantity()
@@ -27,7 +27,7 @@ class LandingPage(View):
         return render(request, 'index.html', context)
 
 
-class AddDonation(View):
+class AddDonationView(View):
 
     def get(self, request):
         user = request.user
@@ -56,7 +56,7 @@ class AddDonation(View):
         return JsonResponse({'errors': errors})
 
 
-class Login(View):
+class LoginView(View):
 
     def get(self, request):
         return render(request, 'login.html')
@@ -76,7 +76,7 @@ class Login(View):
                                               'email': username})
 
 
-class Register(View):
+class RegisterView(View):
 
     def get(self, request):
         form = SignUpForm()
@@ -114,13 +114,10 @@ def get_institutions_by_category(request):
 def donation_added(request):
     return render(request, 'form-confirmation.html')
 
-# categories_ids = request.POST.getlist('categories')
-# categories = [Category.objects.get(id=cat_id) for cat_id in categories_ids]
-# bags_quantity = request.POST.get('bags')
-# address = data.get('address')
-# city = request.POST.get('city')
-# zip_code = request.POST.get('postcode')
-# phone_number = request.POST.get('phone')
-# pick_up_date = request.POST.get('data')
-# pick_up_time = request.POST.get('time')
-# pick_up_comment = request.POST.get('more_info')
+
+class ProfileView(View):
+
+    def get(self, request):
+        donations = Donation.objects.filter(user=request.user)
+        return render(request, 'profile.html', {'donations': donations})
+

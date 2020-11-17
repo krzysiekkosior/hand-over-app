@@ -17,10 +17,11 @@ from django.urls import path
 from main_app import views
 
 urlpatterns = [
-    path('', views.LandingPage.as_view(), name='landing_page'),
-    path('add-donation/', views.AddDonation.as_view(), name='add_donation'),
-    path('login/', views.Login.as_view(), name='login'),
-    path('register/', views.Register.as_view(), name='register'),
+    path('', views.LandingPageView.as_view(), name='landing_page'),
+    path('add-donation/', views.AddDonationView.as_view(), name='add_donation'),
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('register/', views.RegisterView.as_view(), name='register'),
     path('get_institutions/', views.get_institutions_by_category),
-    path('added/', views.donation_added, name='added'),
+    path('donadion-added/', views.donation_added, name='added'),
+    path('profile/', views.ProfileView.as_view(), name='profile'),
 ]

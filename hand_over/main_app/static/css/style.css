@@ -1831,3 +1831,17 @@ footer .bottom-line--icons a img {
 .error {
 
 }
+
+.profile-info {
+  font-size: 2em;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.donation-info {
+  font-size: 1.8em;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}

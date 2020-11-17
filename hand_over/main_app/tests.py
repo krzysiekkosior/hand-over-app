@@ -3,6 +3,8 @@ import pytest
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user
 
+from main_app.models import Donation
+
 
 @pytest.mark.django_db
 def test_landing_page_url(client):
@@ -48,3 +50,22 @@ def test_login_user(client, user):
     client.post(reverse_lazy('login'), context)
     logged_user = get_user(client)
     assert logged_user.is_authenticated
+
+
+@pytest.mark.django_db
+def test_create_donation(client, user, institution_category, institution):
+    client.login(username='test@test.com', password='testpassword123')
+    context = {'quantity': '2',
+               'categories': [f'{institution_category.id}'],
+               'institution': f'{institution.id}',
+               'address': 'Road 12',
+               'phone_number': '506295378',
+               'city': 'Warsaw',
+               'zip_code': '03-123',
+               'pick_up_date': '2020-11-18',
+               'pick_up_time': '15:34',
+               'pick_up_comment': 'comment'
+               }
+
+    client.post(reverse_lazy('add_donation'), context, content_type='application/json')
+    assert Donation.objects.count() == 1
