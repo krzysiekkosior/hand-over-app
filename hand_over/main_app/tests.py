@@ -69,3 +69,16 @@ def test_create_donation(client, user, institution_category, institution):
 
     client.post(reverse_lazy('add_donation'), context, content_type='application/json')
     assert Donation.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_profile_url_as_logged_user(client, user):
+    client.login(username='test@test.com', password='testpassword123')
+    response = client.get(reverse_lazy('profile'))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_profile_url_as_anonymous_user(client):
+    response = client.get(reverse_lazy('profile'))
+    assert response.status_code == 302

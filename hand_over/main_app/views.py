@@ -118,6 +118,9 @@ def donation_added(request):
 class ProfileView(View):
 
     def get(self, request):
-        donations = Donation.objects.filter(user=request.user)
+        user = request.user
+        if user.is_anonymous:
+            return redirect('login')
+        donations = Donation.objects.filter(user=user)
         return render(request, 'profile.html', {'donations': donations})
 
