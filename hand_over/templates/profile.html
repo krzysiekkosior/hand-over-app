@@ -9,7 +9,7 @@
       <li><a href="/#steps" class="btn btn--without-border">O co chodzi?</a></li>
       <li><a href="/#about-us" class="btn btn--without-border">O nas</a></li>
       <li><a href="/#help" class="btn btn--without-border">Fundacje i organizacje</a></li>
-      <li><a href="#donate" class="btn btn--without-border">Przekaż dary</a></li>
+      <li><a href="{% url 'add_donation' %}#donate" class="btn btn--without-border">Przekaż dary</a></li>
       <li><a href="/#contact" class="btn btn--without-border">Kontakt</a></li>
     </ul>
     </nav>
@@ -25,20 +25,30 @@
 
 <h2>Twoje darowizny: </h2>
     <div>
-    {% for donation in donations %}
+    {% if not_taken_donations_amount != 0 %}
+        <form method="post">
+        {% csrf_token %}
+        {% for donation in not_taken_donations %}
         <ul>
-            <li class="donation-info">Darowizna dla: <b>{{ donation.institution.name }}</b></li>
-            <li class="donation-info">Ilość przekazanych worków: {{ donation.quantity }}</li>
-            <li class="donation-info">Przekazano:
-                    {% for category in donation.categories.all %}
-                        {{ category.name }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-            </li>
-            <li class="donation-info">Odbiór: {{ donation.pick_up_date }} godz. {{ donation.pick_up_time }}</li>
-        </ul>
+            {% include 'donation_list.html' %}
+            <li class="donation-info">Odebrano (zaznacz jeśli darowizna została odebrana):
+                <input type="checkbox" name="is_taken" value="{{ donation.id }}">
+            </li><br><br>
+        {% endfor %}
         <br>
-        {% empty %}
-        <p class="donation-info"><i>Brak darowizn</i></p>
+            <li class="donation-info"><input type="submit" value="Aktualizuj"></li>
+        </ul>
+        </form>
+    {% endif %}
+
+    <br><br>
+    {% for donation in taken_donations %}
+    <ul class="donation-taken">
+        <li class="donation-info"><b>Odebrane</b></li>
+        {% include 'donation_list.html' %}
+    </ul>
+    {% empty %}
+    <p class="donation-info"><i>Brak darowizn</i></p>
     {% endfor %}
     </div>
 {% endblock %}

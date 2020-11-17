@@ -4,10 +4,10 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views import View
-
 from main_app.forms import SignUpForm, DonationForm
-from main_app.models import Institution, Category, Donation
-from main_app.utils import get_bags_quantity, get_supported_institutions_amount
+from main_app.models import Institution, Category
+from main_app.utils import get_bags_quantity, get_supported_institutions_amount, get_donation_list, \
+    change_donation_status_to_taken
 import json
 
 
@@ -39,7 +39,6 @@ class AddDonationView(View):
 
     def post(self, request):
         data = json.loads(request.body.decode('utf-8'))
-        print(data)
         form = DonationForm(data)
         if form.is_valid():
             donation = form.save(commit=False)
@@ -52,7 +51,6 @@ class AddDonationView(View):
         errors = []
         for error in form.errors:
             errors.append({'error': form.errors[error][0]})
-            print(form.errors[error])
         return JsonResponse({'errors': errors})
 
 
@@ -121,6 +119,21 @@ class ProfileView(View):
         user = request.user
         if user.is_anonymous:
             return redirect('login')
-        donations = Donation.objects.filter(user=user)
-        return render(request, 'profile.html', {'donations': donations})
+        taken_donations, not_taken_donations, not_taken_donations_amount = get_donation_list(user)
+        context = {
+            'taken_donations': taken_donations,
+            'not_taken_donations': not_taken_donations,
+            'not_taken_donations_amount': not_taken_donations_amount
+        }
+        return render(request, 'profile.html', context)
 
+    def post(self, request):
+        donations_ids = request.POST.getlist('is_taken')
+        change_donation_status_to_taken(donations_ids)
+        taken_donations, not_taken_donations, not_taken_donations_amount = get_donation_list(request.user)
+        context = {
+            'taken_donations': taken_donations,
+            'not_taken_donations': not_taken_donations,
+            'not_taken_donations_amount': not_taken_donations_amount
+        }
+        return render(request, 'profile.html', context)

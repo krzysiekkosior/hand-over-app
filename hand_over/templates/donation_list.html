@@ -1,0 +1,8 @@
+<li class="donation-info">Darowizna dla: <b>{{ donation.institution.name }}</b></li>
+<li class="donation-info">Ilość przekazanych worków: {{ donation.quantity }}</li>
+<li class="donation-info">Przekazano:
+        {% for category in donation.categories.all %}
+            {{ category.name }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+</li>
+<li class="donation-info">Odbiór: {{ donation.pick_up_date }} godz. {{ donation.pick_up_time }}</li>

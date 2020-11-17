@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.test import Client
 
-from main_app.models import Category, Institution
+from main_app.models import Category, Institution, Donation
 
 
 @pytest.fixture
@@ -36,3 +36,16 @@ def institution(institution_category):
     institution.categories.add(institution_category)
     institution.save()
     return institution
+
+
+@pytest.fixture
+def donation(donation_category, institution, user):
+    donation = Donation.objects.create(quantity=1, institution=institution, address='Road 1',
+                                       phone_number=506295378, city='Warsaw', zip_code='03-123',
+                                       pick_up_date='2020-11-18', pick_up_time='15:34',
+                                       pick_up_comment='comment', user=user
+                                       )
+    donation.save()
+    donation.categories.add(donation_category)
+    donation.save()
+    return donation

@@ -82,3 +82,12 @@ def test_profile_url_as_logged_user(client, user):
 def test_profile_url_as_anonymous_user(client):
     response = client.get(reverse_lazy('profile'))
     assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_change_donation_status_to_taken(client, user, donation):
+    client.login(username='test@test.com', password='testpassword123')
+    assert donation.is_taken is False
+    client.post(reverse_lazy('profile'), {'is_taken': '1'})
+    donation.refresh_from_db()
+    assert donation.is_taken is True

@@ -1841,7 +1841,11 @@ footer .bottom-line--icons a img {
 
 .donation-info {
   font-size: 1.8em;
-  display: flex;
+  display: inline-flex;
   width: 100%;
   justify-content: center;
+}
+
+.donation-taken {
+  color: grey;
 }
