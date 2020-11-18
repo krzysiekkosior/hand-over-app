@@ -1,10 +1,13 @@
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.core.exceptions import ValidationError
+from django.http import JsonResponse, Http404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
-from main_app.forms import SignUpForm, DonationForm
+from django.views.generic import UpdateView
+
+from main_app.forms import SignUpForm, DonationForm, EditUserForm
 from main_app.models import Institution, Category
 from main_app.utils import get_bags_quantity, get_supported_institutions_amount, get_donation_list, \
     change_donation_status_to_taken
@@ -57,7 +60,7 @@ class AddDonationView(View):
 class LoginView(View):
 
     def get(self, request):
-        return render(request, 'login.html')
+        return render(request, 'registration/login.html')
 
     def post(self, request):
         username = request.POST.get('username')
@@ -70,7 +73,7 @@ class LoginView(View):
         if user.check_password(raw_password=password):
             login(self.request, user)
             return redirect('landing_page')
-        return render(request, 'login.html', {'error': "Podane hasło jest błędne.",
+        return render(request, 'registration/login.html', {'error': "Podane hasło jest błędne.",
                                               'email': username})
 
 
@@ -137,3 +140,41 @@ class ProfileView(View):
             'not_taken_donations_amount': not_taken_donations_amount
         }
         return render(request, 'profile.html', context)
+
+
+class EditUserView(View):
+
+    def get(self, request):
+        user = request.user
+        form = EditUserForm(instance=user)
+        context = {'form': form, 'title_1': 'Edycja profilu'}
+        return render(request, 'edit_user_form.html', context)
+
+    def post(self, request):
+        user = request.user
+        form = EditUserForm(request.POST, instance=user)
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+            password = form.cleaned_data.get('password_confirm')
+            if user.check_password(password):
+                edited_user = form.save(commit=False)
+                if user.email != email:
+                    edited_user.username = email
+                edited_user.save()
+                return redirect('profile')
+            error = "Błędne hasło"
+        context = {'form': form, 'title': 'Edycja profilu', 'error': error}
+        return render(request, 'edit_user_form.html', context)
+
+
+# class EditUserView(UpdateView):
+#     model = User
+#     form_class = EditUserForm
+#     template_name = 'edit_user_form.html'
+#     success_url = '/accounts/profile/'
+#
+#     def get_object(self, **kwargs):
+#         username = self.kwargs.get("username")
+#         if username is None:
+#             raise Http404
+#         return get_object_or_404(User, username__iexact=username)

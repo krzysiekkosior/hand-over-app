@@ -13,7 +13,8 @@ def test_landing_page_url(client):
 
 
 @pytest.mark.django_db
-def test_add_donation_url(client):
+def test_add_donation_url(client, user):
+    client.login(username='test@test.com', password='testpassword123')
     response = client.get('/add-donation/')
     assert response.status_code == 200
 
@@ -26,7 +27,7 @@ def test_login_url(client):
 
 @pytest.mark.django_db
 def test_register_url(client):
-    response = client.get('/register/')
+    response = client.get('/accounts/register/')
     assert response.status_code == 200
 
 
@@ -46,7 +47,7 @@ def test_create_user(client):
 
 @pytest.mark.django_db
 def test_login_user(client, user):
-    context = {'username': 'tesat@test.com', 'password': 'testpassword123'}
+    context = {'username': 'test@test.com', 'password': 'testpassword123'}
     client.post(reverse_lazy('login'), context)
     logged_user = get_user(client)
     assert logged_user.is_authenticated
@@ -88,6 +89,6 @@ def test_profile_url_as_anonymous_user(client):
 def test_change_donation_status_to_taken(client, user, donation):
     client.login(username='test@test.com', password='testpassword123')
     assert donation.is_taken is False
-    client.post(reverse_lazy('profile'), {'is_taken': '1'})
+    client.post(reverse_lazy('profile'), {'is_taken': [donation.id]})
     donation.refresh_from_db()
     assert donation.is_taken is True

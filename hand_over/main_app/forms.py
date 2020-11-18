@@ -8,10 +8,9 @@ from django.core.exceptions import ValidationError
 
 from main_app.models import Donation, Category, Institution
 
+#
+# def validate_unique_username(value):
 
-def validate_unique_username(value):
-    if User.objects.filter(username=value).count() != 0:
-        raise ValidationError("Podany email jest zajęty.")
 
 
 def validate_zip_code(value):
@@ -24,6 +23,7 @@ def validate_date(value):
     today = datetime.today().date()
     if value < today:
         raise ValidationError("Data nie może być z przeszłości")
+
 
 class SignUpForm(UserCreationForm):
     class Meta:
@@ -40,7 +40,7 @@ class SignUpForm(UserCreationForm):
         self.fields['password2'].widget.attrs['placeholder'] = 'Powtórz hasło'
         self.fields['email'].widget.attrs['placeholder'] = 'Email'
         self.fields['email'].required = True
-        self.fields['email'].validators.append(validate_unique_username)
+        # self.fields['email'].validators.append(validate_unique_username)
 
 
 class DonationForm(forms.ModelForm):
@@ -49,7 +49,7 @@ class DonationForm(forms.ModelForm):
 
     class Meta:
         model = Donation
-        exclude = ('user', )
+        exclude = ('user',)
         error_messages = {
             'address': {'required': 'Podaj adres dostawy'},
             'quantity': {'required': 'Podaj liczbę worków',
@@ -61,3 +61,24 @@ class DonationForm(forms.ModelForm):
             'pick_up_time': {'required': 'Podaj godzinę odbioru'}
         }
 
+
+class EditUserForm(forms.ModelForm):
+    password_confirm = forms.CharField(widget=forms.PasswordInput, label="Podaj hasło aby potwierdzić zmiany")
+
+    class Meta:
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'password_confirm')
+
+    def __init__(self, *args, **kwargs):
+        super(EditUserForm, self).__init__(*args, **kwargs)
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
+        self.fields['email'].required = True
+
+    def clean(self):
+        cd = super().clean()
+        new_email = cd['email']
+        if self.instance.username == new_email:
+            return cd
+        if User.objects.filter(username=new_email).count() != 0:
+            raise ValidationError("Podany email jest zajęty.")

@@ -4,7 +4,7 @@
     Witaj {{ user }}
     <ul class="dropdown">
       <li><a href="{% url 'profile' %}">Profil</a></li>
-      <li><a href="#">Ustawienia</a></li>
+      <li><a href="{% url 'edit_profile' %}">Ustawienia</a></li>
         {% if user.is_superuser %}
             <li><a href="/admin/">Panel administratora</a></li>
         {% endif %}
