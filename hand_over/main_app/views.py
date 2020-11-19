@@ -165,16 +165,3 @@ class EditUserView(View):
             error = "Błędne hasło"
         context = {'form': form, 'title': 'Edycja profilu', 'error': error}
         return render(request, 'edit_user_form.html', context)
-
-
-# class EditUserView(UpdateView):
-#     model = User
-#     form_class = EditUserForm
-#     template_name = 'edit_user_form.html'
-#     success_url = '/accounts/profile/'
-#
-#     def get_object(self, **kwargs):
-#         username = self.kwargs.get("username")
-#         if username is None:
-#             raise Http404
-#         return get_object_or_404(User, username__iexact=username)

@@ -5,12 +5,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-
 from main_app.models import Donation, Category, Institution
-
-#
-# def validate_unique_username(value):
-
 
 
 def validate_zip_code(value):
@@ -39,8 +34,13 @@ class SignUpForm(UserCreationForm):
         self.fields['password1'].widget.attrs['placeholder'] = 'Hasło'
         self.fields['password2'].widget.attrs['placeholder'] = 'Powtórz hasło'
         self.fields['email'].widget.attrs['placeholder'] = 'Email'
-        self.fields['email'].required = True
-        # self.fields['email'].validators.append(validate_unique_username)
+        self.fields['email'].unique = True
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("Podany email jest zajęty")
+        return email
 
 
 class DonationForm(forms.ModelForm):
