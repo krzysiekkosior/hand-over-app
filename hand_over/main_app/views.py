@@ -1,4 +1,5 @@
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -74,7 +75,7 @@ class LoginView(View):
             login(self.request, user)
             return redirect('landing_page')
         return render(request, 'registration/login.html', {'error': "Podane hasło jest błędne.",
-                                              'email': username})
+                                                           'email': username})
 
 
 class RegisterView(View):
@@ -147,7 +148,7 @@ class EditUserView(View):
     def get(self, request):
         user = request.user
         form = EditUserForm(instance=user)
-        context = {'form': form, 'title_1': 'Edycja profilu'}
+        context = {'form': form, 'title': 'Edycja profilu'}
         return render(request, 'edit_user_form.html', context)
 
     def post(self, request):
@@ -165,3 +166,26 @@ class EditUserView(View):
             error = "Błędne hasło"
         context = {'form': form, 'title': 'Edycja profilu', 'error': error}
         return render(request, 'edit_user_form.html', context)
+
+
+class ChangeUserPasswordView(View):
+
+    def get(self, request):
+        form = PasswordChangeForm(request.user)
+        context = {'form': form, 'title': 'Zmiana hasła'}
+        return render(request, 'edit_user_form.html', context)
+
+    def post(self, request):
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            from django.contrib import auth
+            auth.logout(request)
+            return redirect('password_changed')
+        context = {'form': form, 'title': 'Zmiana hasła'}
+        return render(request, 'edit_user_form.html', context)
+
+
+def password_change_done(request):
+    return render(request, 'password_change_done.html')

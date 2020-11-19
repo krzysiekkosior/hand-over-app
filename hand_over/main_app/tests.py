@@ -105,3 +105,18 @@ def test_edit_user_profile(client, user):
     client.post(reverse_lazy('edit_profile'), context)
     user.refresh_from_db()
     assert user.first_name == 'new_name'
+
+
+@pytest.mark.django_db
+def test_change_user_password(client, user):
+    client.login(username='test@test.com', password='testpassword123')
+    context = {
+        'old_password': 'testpassword123',
+        'new_password1': 'hardpassword123',
+        'new_password2': 'hardpassword123',
+    }
+    client.post(reverse_lazy('change_password'), context)
+    user.refresh_from_db()
+    assert user.check_password('hardpassword123')
+    logged_out_user = get_user(client)
+    assert logged_out_user.is_anonymous

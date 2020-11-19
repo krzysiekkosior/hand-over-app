@@ -25,4 +25,6 @@ urlpatterns = [
     path('donadion-added/', views.donation_added, name='added'),
     path('accounts/profile/', views.ProfileView.as_view(), name='profile'),
     path('accounts/profile/edit/', views.EditUserView.as_view(), name='edit_profile'),
+    path('accounts/profile/change-password/', views.ChangeUserPasswordView.as_view(), name='change_password'),
+    path('password-changed', views.password_change_done, name='password_changed'),
 ]
