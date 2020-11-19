@@ -12,7 +12,8 @@ def client():
 
 @pytest.fixture
 def user():
-    user = User.objects.create(username='test@test.com')
+    user = User.objects.create(username='test@test.com', first_name='test_name',
+                               last_name='test_lastname', email='test@test.com')
     user.set_password(raw_password='testpassword123')
     user.save()
     return user

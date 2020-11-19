@@ -88,7 +88,20 @@ def test_profile_url_as_anonymous_user(client):
 @pytest.mark.django_db
 def test_change_donation_status_to_taken(client, user, donation):
     client.login(username='test@test.com', password='testpassword123')
-    assert donation.is_taken is False
     client.post(reverse_lazy('profile'), {'is_taken': [donation.id]})
     donation.refresh_from_db()
     assert donation.is_taken is True
+
+
+@pytest.mark.django_db
+def test_edit_user_profile(client, user):
+    client.login(username='test@test.com', password='testpassword123')
+    context = {
+        'email': 'test@test.com',
+        'first_name': 'new_name',
+        'last_name': 'test_lastname',
+        'password_confirm': 'testpassword123'
+    }
+    client.post(reverse_lazy('edit_profile'), context)
+    user.refresh_from_db()
+    assert user.first_name == 'new_name'
