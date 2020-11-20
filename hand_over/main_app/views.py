@@ -1,13 +1,11 @@
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
-from django.http import JsonResponse, Http404
-from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import auth
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
 from django.views import View
-from django.views.generic import UpdateView
-
+from django.core.paginator import Paginator
 from main_app.forms import SignUpForm, DonationForm, EditUserForm
 from main_app.models import Institution, Category
 from main_app.utils import get_bags_quantity, get_supported_institutions_amount, get_donation_list, \
@@ -20,14 +18,8 @@ class LandingPageView(View):
     def get(self, request):
         bags = get_bags_quantity()
         institutions = get_supported_institutions_amount()
-        foundations = Institution.objects.filter(type=0)
-        organizations = Institution.objects.filter(type=1)
-        local_collections = Institution.objects.filter(type=2)
         context = {'bags': bags,
-                   'institutions': institutions,
-                   'organizations': organizations,
-                   'foundations': foundations,
-                   'collections': local_collections}
+                   'institutions': institutions}
         return render(request, 'index.html', context)
 
 
@@ -113,6 +105,26 @@ def get_institutions_by_category(request):
     return JsonResponse({'institutions': institutions_to_display})
 
 
+def paginate_institutions(request):
+    page = int(request.GET.get('page'))
+    inst_type = int(request.GET.get('type')) - 1
+    print(f'typ: {inst_type}, strona: {page}')
+
+    objects = Institution.objects.filter(type=inst_type)
+    paginator = Paginator(objects, 2)
+    amount_of_pages = paginator.num_pages
+    institutions = []
+    for institution in paginator.get_page(page):
+        categories = []
+        for category in institution.categories.all():
+            categories.append({'name': category.name})
+        json_institution = {'name': institution.name,
+                            'description': institution.description,
+                            'categories': categories}
+        institutions.append(json_institution)
+    return JsonResponse({'institutions': institutions, 'page': page, 'last_page': amount_of_pages})
+
+
 def donation_added(request):
     return render(request, 'form-confirmation.html')
 
@@ -180,7 +192,6 @@ class ChangeUserPasswordView(View):
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)
-            from django.contrib import auth
             auth.logout(request)
             return redirect('password_changed')
         context = {'form': form, 'title': 'Zmiana hasła'}

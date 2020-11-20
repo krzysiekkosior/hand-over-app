@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", function() {
+
+getInstitutions(1, 1);
+
+
   /**
    * HomePage - Help section
    */
@@ -53,6 +57,8 @@ document.addEventListener("DOMContentLoaded", function() {
         if (el.dataset.id === this.currentSlide) {
           el.classList.add("active");
         }
+        console.log(this.currentSlide);
+        getInstitutions(this.currentSlide, 1)
       });
     }
 
@@ -62,8 +68,9 @@ document.addEventListener("DOMContentLoaded", function() {
     changePage(e) {
       e.preventDefault();
       const page = e.target.dataset.page;
-
-      console.log(page);
+      let active_slide = document.querySelector(".help--slides.active")
+      let type = active_slide.dataset.id;
+      getInstitutions(type, page);
     }
   }
   const helpSection = document.querySelector(".help");
@@ -205,7 +212,7 @@ document.addEventListener("DOMContentLoaded", function() {
             for (let el of categories) {
               params = params+ 'cat_ids=' + el.value + "&"
             }
-            let addres = "/get_institutions/?" + params
+            let addres = "/get_institutions/?" + params;
 
             fetch(addres, {method: 'GET',})
                 .then((res) => {
@@ -428,7 +435,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 
-
 function getCookie(c_name) {
         if(document.cookie.length > 0) {
             c_start = document.cookie.indexOf(c_name + "=");
@@ -441,3 +447,55 @@ function getCookie(c_name) {
         }
         return "";
     }
+
+function getInstitutions(type, page) {
+    let addres = "/institutions/?" + "type=" + type + "&page=" + page;
+    fetch(addres, {method: 'GET'})
+        .then((res) => {
+      return res.json();
+    })
+        .then((res) => {
+          let active_div = document.querySelector(".help--slides.active");
+          active_div.innerHTML = "";
+          let paragraph = document.createElement("p");
+          paragraph.innerHTML = "W naszej bazie znajdziesz listę zweryfikowanych fundacji, organizacji pozarzadowych i lokalnych zbiórek, z którymi współpracujemy. Możesz sprawdzić czym się zajmują, komu pomagają i czego potrzebują.";
+          active_div.appendChild(paragraph);
+          let element_list = document.createElement("ul");
+          element_list.classList.add("help--slides-items");
+
+          for (let el of res.institutions) {
+            let categories = "";
+            for(let cat of el.categories) {
+              categories = categories + cat.name + " "
+            }
+            element_list.innerHTML += `
+                  <li>
+                  <div class="col">
+                  <div class="title">${el.name}</div>
+                  <div class="subtitle">Cel i misja: ${el.description}</div>
+                  </div>
+                  <div class="col"><div class="text">
+                  ${categories}
+                  </div></div>
+              </li>
+            `
+          }
+          active_div.appendChild(element_list);
+
+          let page_list = document.createElement("ul");
+          page_list.classList.add("help--slides-pagination");
+
+          for (let i=1; i<= res.last_page; i++) {
+            page_list.innerHTML += `
+            <li><a href="#" class="btn btn--small btn--without-border" data-page="${i}">${i}</a></li>
+            `
+          }
+          active_div.appendChild(page_list);
+          for (let li of page_list.children) {
+            li.firstElementChild.classList.remove("active");
+          }
+          let active_page = page_list.querySelector("a[data-page='" + page + "']");
+          active_page.classList.add("active");
+
+    })
+};
