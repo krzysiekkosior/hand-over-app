@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block header %}
+    <header>
+    <nav class="container container--70">
+      {% include 'header_bar.html' %}
+    <ul>
+      <li><a href="/" class="btn btn--without-border active">Start</a></li>
+      <li><a href="/#steps" class="btn btn--without-border">O co chodzi?</a></li>
+      <li><a href="/#about-us" class="btn btn--without-border">O nas</a></li>
+      <li><a href="/#help" class="btn btn--without-border">Fundacje i organizacje</a></li>
+      <li><a href="{% url 'add_donation' %}#donate" class="btn btn--without-border">Przekaż dary</a></li>
+      <li><a href="/#contact" class="btn btn--without-border">Kontakt</a></li>
+    </ul>
+    </nav>
+    </header>
+{% endblock %}
+{% block content %}
+    <h2></h2>
+    {% if activate_acc %}
+    <p class="profile-info">{{ activate_acc }}</p>
+    {% endif %}
+    {% if activate_pass %}
+    <p class="profile-info">{{ activate_pass }}</p>
+    {% endif %}
+    {% if activate_fail %}
+    <p class="profile-info">{{ activate_fail }}</p>
+    {% endif %}
+{% endblock %}

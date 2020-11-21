@@ -9,10 +9,12 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+import mymail
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -130,3 +132,10 @@ STATICFILES_DIRS = [
 
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL = '/'
+
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = mymail.mymail
+EMAIL_HOST_PASSWORD = mymail.mypassword
+EMAIL_PORT = 587

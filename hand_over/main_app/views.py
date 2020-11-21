@@ -2,12 +2,18 @@ from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.contrib import auth
-from django.http import JsonResponse
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMessage
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views import View
 from django.core.paginator import Paginator
 from main_app.forms import SignUpForm, DonationForm, EditUserForm
 from main_app.models import Institution, Category
+from main_app.tokens import account_activation_token
 from main_app.utils import get_bags_quantity, get_supported_institutions_amount, get_donation_list, \
     change_donation_status_to_taken
 import json
@@ -85,8 +91,23 @@ class RegisterView(View):
             password = form.cleaned_data['password2']
             user = User.objects.create(username=email, first_name=first_name, last_name=last_name, email=email)
             user.set_password(raw_password=password)
+            user.is_active = False
             user.save()
-            return redirect('login')
+            current_site = get_current_site(request)
+            mail_subject = 'Aktywacja konta (Oddam w dobre ręce)'
+            message = render_to_string('acc_active_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': account_activation_token.make_token(user=user),
+            })
+            to_email = form.cleaned_data.get('email')
+            email = EmailMessage(
+                mail_subject, message, to=[to_email]
+            )
+            email.send()
+            context = {'activate_acc': 'Na podany adres email został wysłany link aktywacyjny.'}
+            return render(request, 'email_verification.html', context)
         return render(request, 'register.html', {'form': form})
 
 
@@ -200,3 +221,19 @@ class ChangeUserPasswordView(View):
 
 def password_change_done(request):
     return render(request, 'password_change_done.html')
+
+
+def activate_account(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        context = {'activate_pass': 'Konto zostało aktywowane. Możesz się teraz zalogować.'}
+        return render(request, 'email_verification.html', context)
+    else:
+        context = {'activate_fail': 'Link aktywacyjny jest niepoprawny.'}
+        return render(request, 'email_verification.html', context)
