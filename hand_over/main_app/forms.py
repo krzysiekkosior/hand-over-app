@@ -82,3 +82,9 @@ class EditUserForm(forms.ModelForm):
             return cd
         if User.objects.filter(username=new_email).count() != 0:
             raise ValidationError("Podany email jest zajęty.")
+
+
+class ContactForm(forms.Form):
+    name = forms.CharField(max_length=30, required=True)
+    surname = forms.CharField(max_length=30, required=True)
+    message = forms.CharField(max_length=500, required=True)

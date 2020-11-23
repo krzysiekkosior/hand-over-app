@@ -1,17 +1,19 @@
+from django.contrib import messages
 from django.contrib.auth import login, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.contrib import auth
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views import View
 from django.core.paginator import Paginator
-from main_app.forms import SignUpForm, DonationForm, EditUserForm
+from main_app.forms import SignUpForm, DonationForm, EditUserForm, ContactForm
 from main_app.models import Institution, Category
 from main_app.tokens import account_activation_token
 from main_app.utils import get_bags_quantity, get_supported_institutions_amount, get_donation_list, \
@@ -27,6 +29,33 @@ class LandingPageView(View):
         context = {'bags': bags,
                    'institutions': institutions}
         return render(request, 'index.html', context)
+
+
+    def post(self, request):
+        contact = ContactForm(request.POST)
+        current_page = request.META['HTTP_REFERER']
+        user = request.user
+        if contact.is_valid():
+            name = request.POST.get('name')
+            surname = request.POST.get('surname')
+            message = request.POST.get('message')
+            email_subject = f'Wiadomość od {user}, {name} {surname}'
+            email_body = message
+            admins = User.objects.filter(is_superuser=True)
+            admin_emails = []
+            for admin in admins:
+                admin_emails.append(admin.email)
+            email_to_send = EmailMessage(
+                email_subject,
+                email_body,
+                'noreply@semycolon.com',
+                admin_emails,
+            )
+            email_to_send.send(fail_silently=True)
+            return redirect(current_page)
+
+        messages.error(request, "Uzupełnij wszystkie pola")
+        return redirect(current_page)
 
 
 class AddDonationView(View):
@@ -129,7 +158,6 @@ def get_institutions_by_category(request):
 def paginate_institutions(request):
     page = int(request.GET.get('page'))
     inst_type = int(request.GET.get('type')) - 1
-    print(f'typ: {inst_type}, strona: {page}')
 
     objects = Institution.objects.filter(type=inst_type)
     paginator = Paginator(objects, 2)
